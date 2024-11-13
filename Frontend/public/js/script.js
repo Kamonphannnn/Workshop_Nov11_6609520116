@@ -41,7 +41,8 @@ function submitLogin(event) {
   })
   .then(data => {
     const messageElement = document.getElementById('message');
-    if(data.message === 'Success'){
+
+    if (data.message === 'Success') {
       messageElement.innerHTML = `
         <p>Login status: ${data.message}</p>
         <p>Hello ${data.displayname_en}</p>
@@ -51,41 +52,50 @@ function submitLogin(event) {
         <p>Department: ${data.department}</p>
         <p>Status: ${data.status}</p>
       `;
-    } else {
-      messageElement.innerText = 'Login status: ' + data.message;
-    }
 
-    if(data.status === true){
-      fetch('http://localhost:8080/api/students/add', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          userName: data.username || "defaultUsername",
-          type: data.type || "defaultType",               
-          displayname_en: data.displayname_en || "Unknown",
-          email: data.email || "unknown@example.com",
-          faculty: data.faculty || "Unknown Faculty"
+      // Check if user status is true, then add user data to the backend
+      if (data.status === true) {
+        fetch('http://localhost:8080/api/students/add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            userName: data.username || "defaultUsername",
+            type: data.type || "defaultType",               
+            displayname_en: data.displayname_en || "Unknown",
+            email: data.email || "unknown@example.com",
+            faculty: data.faculty || "Unknown Faculty"
+          })
         })
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Failed to save user data to backend.');
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log('added successs:', data);
-        document.getElementById('message').innerText = 'Login success and data added.';
-      })
-      .catch(error => console.error('Error adding user data:', error));
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to save user data to backend.');
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Added successfully:', data);
+          document.getElementById('message').innerText = 'Login success and data added.';
+        })
+        .catch(error => {
+          console.error('Error adding user data:', error);
+          document.getElementById('message').innerText = 'Error adding user data: ' + error.message;
+        });
+      } else {
+        // If status is not true, alert the message returned from API
+        alert(data.message);
+      }
     } else {
+      // If authentication fails, alert the message returned from API
       alert(data.message);
+      document.getElementById('message').innerText = 'Login failed: ' + data.message;
     }
   })
   .catch(error => {
+    // Handle errors such as network issues or JSON parsing issues
     console.error('Error:', error);
     document.getElementById('message').innerText = 'An error occurred: ' + error.message;
+    alert('An error occurred: ' + error.message);
   });
 }
